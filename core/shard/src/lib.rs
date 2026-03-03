@@ -71,7 +71,11 @@ where
                 Entry = Message<PrepareHeader>,
                 Header = PrepareHeader,
             >,
-        M: StateMachine<Input = Message<PrepareHeader>>,
+        M: StateMachine<
+                Input = Message<PrepareHeader>,
+                Output = bytes::Bytes,
+                Error = iggy_common::IggyError,
+            >,
     {
         match MessageBag::from(message) {
             MessageBag::Request(request) => self.on_request(request).await,
@@ -89,7 +93,11 @@ where
                 Entry = Message<PrepareHeader>,
                 Header = PrepareHeader,
             >,
-        M: StateMachine<Input = Message<PrepareHeader>>,
+        M: StateMachine<
+                Input = Message<PrepareHeader>,
+                Output = bytes::Bytes,
+                Error = iggy_common::IggyError,
+            >,
     {
         let planes = self.plane.inner();
         if planes.0.is_applicable(&request) {
@@ -108,7 +116,11 @@ where
                 Entry = Message<PrepareHeader>,
                 Header = PrepareHeader,
             >,
-        M: StateMachine<Input = Message<PrepareHeader>>,
+        M: StateMachine<
+                Input = Message<PrepareHeader>,
+                Output = bytes::Bytes,
+                Error = iggy_common::IggyError,
+            >,
     {
         let planes = self.plane.inner();
         if planes.0.is_applicable(&prepare) {
@@ -127,7 +139,11 @@ where
                 Entry = Message<PrepareHeader>,
                 Header = PrepareHeader,
             >,
-        M: StateMachine<Input = Message<PrepareHeader>>,
+        M: StateMachine<
+                Input = Message<PrepareHeader>,
+                Output = bytes::Bytes,
+                Error = iggy_common::IggyError,
+            >,
     {
         let planes = self.plane.inner();
         if planes.0.is_applicable(&prepare_ok) {
@@ -154,7 +170,11 @@ where
                 Entry = Message<PrepareHeader>,
                 Header = PrepareHeader,
             >,
-        M: StateMachine<Input = Message<PrepareHeader>>,
+        M: StateMachine<
+                Input = Message<PrepareHeader>,
+                Output = bytes::Bytes,
+                Error = iggy_common::IggyError,
+            >,
     {
         debug_assert!(buf.is_empty(), "buf must be empty on entry");
 

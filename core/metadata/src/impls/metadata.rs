@@ -106,7 +106,11 @@ where
     P: Pipeline<Message = Message<PrepareHeader>, Entry = PipelineEntry>,
     J: JournalHandle,
     J::Target: Journal<J::Storage, Entry = Message<PrepareHeader>, Header = PrepareHeader>,
-    M: StateMachine<Input = Message<PrepareHeader>>,
+    M: StateMachine<
+            Input = Message<PrepareHeader>,
+            Output = bytes::Bytes,
+            Error = iggy_common::IggyError,
+        >,
 {
     async fn on_request(&self, message: <VsrConsensus<B, P> as Consensus>::Message<RequestHeader>) {
         let consensus = self.consensus.as_ref().unwrap();
@@ -225,13 +229,17 @@ where
                         )
                     });
 
-                // Apply the state (consumes prepare)
-                // TODO: Handle appending result to response
-                let _result = self.mux_stm.update(prepare);
+                let response = self.mux_stm.update(prepare).unwrap_or_else(|err| {
+                    warn!(
+                        "on_ack: state machine error for op={}: {err}",
+                        prepare_header.op
+                    );
+                    bytes::Bytes::new()
+                });
                 debug!("on_ack: state applied for op={}", prepare_header.op);
 
-                // Send reply to client
-                let generic_reply = build_reply_message(consensus, &prepare_header).into_generic();
+                let generic_reply =
+                    build_reply_message(consensus, &prepare_header, response).into_generic();
                 debug!(
                     "on_ack: sending reply to client={} for op={}",
                     prepare_header.client, prepare_header.op
