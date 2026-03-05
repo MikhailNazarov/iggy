@@ -58,6 +58,15 @@
     }
   });
 
+  // Sync internal headlessui state → bindable prop
+  // (onselect event doesn't fire correctly in Svelte 5)
+  $effect(() => {
+    const current = $listbox.selected;
+    if (current && current.value !== selectedValue) {
+      selectedValue = current.value;
+    }
+  });
+
   const dispatch = createEventDispatcher<{ selectedValue: string }>();
 
   function onSelect(e: Event) {

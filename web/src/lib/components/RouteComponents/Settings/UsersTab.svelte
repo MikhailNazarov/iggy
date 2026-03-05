@@ -35,40 +35,48 @@
   import StopPropagation from '$lib/components/StopPropagation.svelte';
   import { openModal } from '$lib/components/Modals/AppModals.svelte';
 
+  import type { Stream } from '$lib/domain/Stream';
+
   interface Props {
     users: Array<User>;
+    streams: Stream[];
   }
 
-  let { users }: Props = $props();
+  let { users, streams }: Props = $props();
 
   $usersCount = users.length;
   let filteredUsers = $derived(
     users.filter((user) => user.username.toLowerCase().includes($searchQuery.toLowerCase()))
   );
 
-  const userActions = [
-    {
-      label: 'Edit',
-      icon: 'editPen',
-      action: () => {
-        openModal('EditUserModal');
+  const getUserActions = (userId: number) =>
+    [
+      {
+        label: 'Edit',
+        icon: 'editPen',
+        action: () => {
+          openModal('EditUserModal', { userId });
+        }
+      },
+      {
+        label: 'Permissions',
+        icon: 'shieldLock',
+        action: () => {
+          openModal('EditUserPermissionsModal', { userId, streams });
+        }
+      },
+      {
+        label: 'Delete',
+        icon: 'trash',
+        action: () => {
+          const user = users.find((u) => u.id === userId);
+          openModal('DeleteUserModal', {
+            userIds: [userId],
+            usernames: user ? [user.username] : []
+          });
+        }
       }
-    },
-    {
-      label: 'Permissions',
-      icon: 'shieldLock',
-      action: () => {
-        openModal('EditUserPermissionsModal');
-      }
-    },
-    {
-      label: 'Delete',
-      icon: 'trash',
-      action: () => {
-        openModal('DeleteUserModal');
-      }
-    }
-  ] satisfies { label: string; icon: iconType; action: VoidFunction }[];
+    ] satisfies { label: string; icon: iconType; action: VoidFunction }[];
 
   const toggleAllChecked = (e: Event) => {
     const { checked } = e.target as HTMLInputElement;
@@ -176,7 +184,7 @@
             {/snippet}
             {#snippet children({ close })}
               <div>
-                {#each userActions as { action, icon, label } (label)}
+                {#each getUserActions(row.id) as { action, icon, label } (label)}
                   <button
                     onclick={() => {
                       action();

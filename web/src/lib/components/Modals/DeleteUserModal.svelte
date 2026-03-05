@@ -19,21 +19,92 @@
 
 <script lang="ts">
   import type { CloseModalFn } from '$lib/types/utilTypes';
-
   import ModalBase from './ModalBase.svelte';
+  import Button from '../Button.svelte';
+  import Icon from '../Icon.svelte';
+  import { fetchRouteApi } from '$lib/api/fetchRouteApi';
+  import { showToast } from '../AppToasts.svelte';
+  import { customInvalidateAll } from '../PeriodicInvalidator.svelte';
+  import { selectedUsersId } from '../../../routes/dashboard/settings/users/+page.svelte';
 
   interface Props {
     closeModal: CloseModalFn;
+    userIds: number[];
+    usernames?: string[];
   }
 
-  let { closeModal }: Props = $props();
+  let { closeModal, userIds, usernames = [] }: Props = $props();
+
+  let deleting = $state(false);
+
+  const deleteUsers = async () => {
+    deleting = true;
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const userId of userIds) {
+      const { ok } = await fetchRouteApi({
+        method: 'DELETE',
+        path: `/users/${userId}`
+      });
+
+      if (ok) {
+        successCount++;
+      } else {
+        failCount++;
+      }
+    }
+
+    deleting = false;
+
+    if (failCount > 0) {
+      showToast({
+        type: 'error',
+        description: `Failed to delete ${failCount} user(s)`,
+        duration: 5000
+      });
+    }
+
+    if (successCount > 0) {
+      closeModal(async () => {
+        selectedUsersId.set([]);
+        await customInvalidateAll();
+        await showToast({
+          type: 'success',
+          description: `${successCount} user(s) deleted.`,
+          duration: 3500
+        });
+      });
+    }
+  };
+
+  const displayNames = usernames.length > 0
+    ? usernames.join(', ')
+    : `${userIds.length} user(s)`;
 </script>
 
-<ModalBase {closeModal} title="Delete user">
-  <div class="h-[300px] flex flex-col">
-    <!-- <div class="flex justify-end gap-3 mt-auto">
-              <Button variant="text" class="w-2/5" onclick={closeModal}>Cancel</Button>
-              <Button type="submit" variant="contained" class="w-2/5">Save</Button>
-            </div> -->
+<ModalBase {closeModal} title="Delete user(s)">
+  <div class="flex flex-col min-w-[400px]">
+    <div class="flex items-center gap-3 p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+      <Icon name="trash" class="w-6 h-6 text-red-500 shrink-0" />
+      <p class="text-color text-sm">
+        Are you sure you want to delete <strong>{displayNames}</strong>?
+        This action cannot be undone.
+      </p>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-8 w-[350px] ml-auto">
+      <Button variant="text" type="button" class="w-2/5" onclick={() => closeModal()}>
+        Cancel
+      </Button>
+      <Button
+        variant="containedRed"
+        class="w-2/5"
+        onclick={deleteUsers}
+        disabled={deleting}
+      >
+        {deleting ? 'Deleting...' : 'Delete'}
+      </Button>
+    </div>
   </div>
 </ModalBase>

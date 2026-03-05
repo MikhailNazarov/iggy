@@ -48,29 +48,34 @@
     data.users.filter((user) => user.username.toLowerCase().includes($searchQuery.toLowerCase()))
   );
 
-  const userActions = [
-    {
-      label: 'Edit',
-      icon: 'editPen',
-      action: () => {
-        openModal('EditUserModal');
+  const getUserActions = (userId: number) =>
+    [
+      {
+        label: 'Edit',
+        icon: 'editPen',
+        action: () => {
+          openModal('EditUserModal', { userId });
+        }
+      },
+      {
+        label: 'Permissions',
+        icon: 'shieldLock',
+        action: () => {
+          openModal('EditUserPermissionsModal', { userId, streams: data.streams });
+        }
+      },
+      {
+        label: 'Delete',
+        icon: 'trash',
+        action: () => {
+          const user = data.users.find((u: any) => u.id === userId);
+          openModal('DeleteUserModal', {
+            userIds: [userId],
+            usernames: user ? [user.username] : []
+          });
+        }
       }
-    },
-    {
-      label: 'Permissions',
-      icon: 'shieldLock',
-      action: () => {
-        openModal('EditUserPermissionsModal');
-      }
-    },
-    {
-      label: 'Delete',
-      icon: 'trash',
-      action: () => {
-        openModal('DeleteUserModal');
-      }
-    }
-  ] satisfies { label: string; icon: iconType; action: VoidFunction }[];
+    ] satisfies { label: string; icon: iconType; action: VoidFunction }[];
 
   const toggleAllChecked = (e: Event) => {
     const { checked } = e.target as HTMLInputElement;
@@ -92,11 +97,36 @@
     <div class="flex flex-col-reverse lg:flex-row gap-3 lg:gap-5 items-center">
       {#if $selectedUsersId.length > 0}
         <div class="mr-auto flex gap-2" transition:fade={{ duration: 50 }}>
-          <Button variant="containedRed">
+          <Button
+            variant="containedRed"
+            onclick={() => {
+              const userIds = $selectedUsersId.map(Number);
+              const usernames = data.users
+                .filter((u: any) => userIds.includes(u.id))
+                .map((u: any) => u.username);
+              openModal('DeleteUserModal', { userIds, usernames });
+            }}
+          >
             <Icon name="trash" />
             Delete selected</Button
           >
-          <Button variant="contained">
+          <Button
+            variant="contained"
+            onclick={() => {
+              const userIds = $selectedUsersId.map(Number);
+              if (userIds.length === 1) {
+                openModal('EditUserPermissionsModal', {
+                  userId: userIds[0],
+                  streams: data.streams
+                });
+              } else {
+                openModal('BulkEditPermissionsModal', {
+                  userIds,
+                  streams: data.streams
+                });
+              }
+            }}
+          >
             <Icon name="shieldLock" />
             Change permissions</Button
           >
@@ -223,7 +253,7 @@
                 {/snippet}
                 {#snippet children({ close })}
                   <div>
-                    {#each userActions as { action, icon, label } (action)}
+                    {#each getUserActions(row.id) as { action, icon, label } (label)}
                       <button
                         onclick={() => {
                           action();

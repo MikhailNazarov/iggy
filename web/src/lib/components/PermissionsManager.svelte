@@ -69,9 +69,10 @@
   interface Props {
     streams: Stream[];
     value?: any;
+    initialPermissions?: any;
   }
 
-  let { streams, value = $bindable() }: Props = $props();
+  let { streams, value = $bindable(), initialPermissions }: Props = $props();
 
   let topics: Topic[] = $state([]);
   let fetchingTopics = $state(false);
@@ -112,22 +113,25 @@
       return;
     }
 
+    const initStreamTopics = initStreams?.[selectedStream.id]?.topics;
+
     newTopics.forEach((t) => {
+      const initTopic = initStreamTopics?.[t.id];
       tempTopicPerms[t.id] = {
         manageTopic: {
-          checked: false,
+          checked: initTopic?.manage_topic ?? false,
           name: 'Manage topic'
         },
         pollMessages: {
-          checked: false,
+          checked: initTopic?.poll_messages ?? false,
           name: 'Poll messages'
         },
         readTopic: {
-          checked: false,
+          checked: initTopic?.read_topic ?? false,
           name: 'Read topic'
         },
         sendMessages: {
-          checked: false,
+          checked: initTopic?.send_messages ?? false,
           name: 'Send messages'
         }
       };
@@ -148,96 +152,108 @@
     }
   };
 
+  const initGlobal = initialPermissions?.global;
+
   const globalPerms: GlobalPerms = $state({
     manage_servers: {
       name: 'Manage servers',
-      checked: false
+      checked: initGlobal?.manage_servers ?? false
     },
     read_servers: {
       name: 'Read servers',
-      checked: false
+      checked: initGlobal?.read_servers ?? false
     },
     manage_users: {
       name: 'Manage users',
-      checked: false
+      checked: initGlobal?.manage_users ?? false
     },
     read_users: {
       name: 'Read users',
-      checked: false
+      checked: initGlobal?.read_users ?? false
     },
     manage_streams: {
       name: 'Manage streams',
       relatesTo: 'manage_stream',
-      checked: false
+      checked: initGlobal?.manage_streams ?? false
     },
     read_streams: {
       name: 'Read streams',
       relatesTo: 'read_stream',
-      checked: false
+      checked: initGlobal?.read_streams ?? false
     },
     manage_topics: {
       name: 'Manage topics',
       relatesTo: 'manage_topics',
-      checked: false
+      checked: initGlobal?.manage_topics ?? false
     },
     read_topics: {
       name: 'Read topics',
       relatesTo: 'read_topics',
-      checked: false
+      checked: initGlobal?.read_topics ?? false
     },
     poll_messages: {
       name: 'Pool messages',
       relatesTo: 'poll_messages',
-      checked: false
+      checked: initGlobal?.poll_messages ?? false
     },
     send_messages: {
       name: 'Send messages',
       relatesTo: 'send_messages',
-      checked: false
+      checked: initGlobal?.send_messages ?? false
     }
   });
+
+  const initStreams = initialPermissions?.streams;
 
   let streamsPerms = $state(
     (() => {
       const tempPerms: StreamsPerms = {};
 
       streams.forEach((s) => {
+        const initStream = initStreams?.[s.id];
+        const isGlobalManageStreams = initGlobal?.manage_streams ?? false;
+        const isGlobalReadStreams = initGlobal?.read_streams ?? false;
+        const isGlobalManageTopics = initGlobal?.manage_topics ?? false;
+        const isGlobalReadTopics = initGlobal?.read_topics ?? false;
+        const isGlobalPollMessages = initGlobal?.poll_messages ?? false;
+        const isGlobalSendMessages = initGlobal?.send_messages ?? false;
+
         tempPerms[s.id] = {
           manage_stream: {
             name: 'Manage stream',
             globalPermsKey: 'manage_streams',
-            checked: false,
-            disabled: false
+            checked: initStream?.manage_stream ?? isGlobalManageStreams,
+            disabled: isGlobalManageStreams
           },
           read_stream: {
             name: 'Read stream',
             globalPermsKey: 'read_streams',
-            checked: false,
-            disabled: false
+            checked: initStream?.read_stream ?? isGlobalReadStreams,
+            disabled: isGlobalReadStreams
           },
           read_topics: {
             name: 'Read topics',
             globalPermsKey: 'read_topics',
-            checked: false,
-            disabled: false
+            checked: initStream?.read_topics ?? isGlobalReadTopics,
+            disabled: isGlobalReadTopics
           },
           poll_messages: {
             name: 'Poll messages',
             globalPermsKey: 'poll_messages',
-            checked: false,
-            disabled: false
+            checked: initStream?.poll_messages ?? isGlobalPollMessages,
+            disabled: isGlobalPollMessages
           },
           send_messages: {
             name: 'Send messages',
             globalPermsKey: 'send_messages',
-            checked: false,
-            disabled: false
+            checked: initStream?.send_messages ?? isGlobalSendMessages,
+            disabled: isGlobalSendMessages
           },
           manage_topics: {
             name: 'Manage topics',
             globalPermsKey: 'manage_topics',
-            checked: false,
-            disabled: false
+            checked: initStream?.manage_topics ?? isGlobalManageTopics,
+            disabled: isGlobalManageTopics
           },
           topicPerms: {}
         };

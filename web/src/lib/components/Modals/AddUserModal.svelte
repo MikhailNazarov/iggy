@@ -40,6 +40,8 @@
 
   let { closeModal, streams }: Props = $props();
 
+  let selectedStatus = $state<'active' | 'inactive'>('active');
+
   const schema = z.object({
     username: z.string().min(1, 'Username is required').trim(),
     password: z.string().min(4, { message: 'Password must contain at least 4 characters' }).trim(),
@@ -61,7 +63,7 @@
         body: {
           username: form.data.username,
           password: form.data.password,
-          status: form.data.status,
+          status: selectedStatus,
           permissions: form.data.permissions
         }
       });
@@ -145,8 +147,7 @@
           { name: 'Active', value: 'active' },
           { name: 'Inactive', value: 'inactive' }
         ]}
-        selectedValue={$form.status}
-        on:selectedValue={(e) => ($form.status = e.detail as 'active' | 'inactive')}
+        bind:selectedValue={selectedStatus}
       />
     </div>
 

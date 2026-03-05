@@ -27,6 +27,7 @@
   import DeleteUserModal from './DeleteUserModal.svelte';
   import EditUserModal from './EditUserModal.svelte';
   import EditUserPermissionsModal from './EditUserPermissionsModal.svelte';
+  import BulkEditPermissionsModal from './BulkEditPermissionsModal.svelte';
   import InspectMessage from './InspectMessage.svelte';
   import StreamSettingsModal from './StreamSettingsModal.svelte';
   import TopicSettingsModal from './TopicSettingsModal.svelte';
@@ -44,6 +45,7 @@
     DeleteUserModal,
     EditUserModal,
     EditUserPermissionsModal,
+    BulkEditPermissionsModal,
     InspectMessage,
     StreamSettingsModal,
     TopicSettingsModal

@@ -47,12 +47,11 @@ type Users =
       path: `/users/${number}`;
     }
   | {
-      method: 'GET';
+      method: 'PUT';
       path: `/users/${number}`;
       body: {
         username: string;
         status: 'active' | 'inactive';
-        permissions: Permissions | null;
       };
     }
   | {
